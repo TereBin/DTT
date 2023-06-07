@@ -58,7 +58,7 @@ if __name__ == "__main__":
     find_amount = re.compile("\"amount\":\d+")
 
     username = 'TereBin_Bot'
-    oauth = "oauth:e73mx56ocrxoxuxhcn7hipkn89xkap"
+    oauth = "oauth:******************************"
     chat_connection = twitch_chat_irc.TwitchChatIRC(username, oauth)
 
     while True:
