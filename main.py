@@ -2,27 +2,55 @@ import requests as req
 import websocket as ws
 from bs4 import BeautifulSoup as bs
 import re
-from twitch_chat_irc import twitch_chat_irc
 import time
+import json
 
 
-def send_chat(channel, message):
-    chat_connection.send(channel, message)
-    time.sleep(3)
+uri = "ws://127.0.0.1:42069/websocket"
+trig = ws.WebSocket()
+trig.connect(uri)
+
+
+def coin(trig):
+    print("coin")
+    uri = "ws://127.0.0.1:42069/websocket"
+    trig = ws.WebSocket()
+    trig.connect(uri)
+    trig.send(payload=coin_message, opcode=1)
+    trig.close()
+
+
+def dollar(trig):
+    print("dollar")
+    uri = "ws://127.0.0.1:42069/websocket"
+    trig = ws.WebSocket()
+    trig.connect(uri)
+    trig.send(payload=dollar_message, opcode=1)
+    trig.close()
+
+
+def gold(trig):
+    print("gold")
+    uri = "ws://127.0.0.1:42069/websocket"
+    trig = ws.WebSocket()
+    trig.connect(uri)
+    trig.send(payload=gold_message, opcode=1)
+    trig.close()
 
 
 def on_message(connection, message):
     amount = int(find_amount.findall(message)[0][9:])
     print("Amount : " + str(amount))
     if amount < 5000:
-        send_chat(channel, "!coin")
+        coin(trig)
         print('-'*50)
     elif amount < 10000:
-        send_chat(channel, "!dollar")
+        dollar(trig)
         print('-'*50)
     else:
-        send_chat(channel, "!gold")
+        gold(trig)
         print('-'*50)
+
 
 if __name__ == "__main__":
     try:
@@ -30,6 +58,9 @@ if __name__ == "__main__":
             data = DTT_data.readlines()
             alertbox = data[0]
             channel = data[1]
+            coin_message = data[2]
+            dollar_message = data[3]
+            gold_message = data[4]
             print("="*50 + "\nConnected to", channel + "\n" + "-"*50)
 
     except FileNotFoundError:
@@ -40,6 +71,45 @@ if __name__ == "__main__":
             DTT_data.write("\n")
             channel = input("Twitch ID : ")
             DTT_data.write(channel)
+            DTT_data.write("\n")
+            req_message = str({
+                "apiName": "TITSPublicApi",
+                "apiVersion": "1.0",
+                "requestID": "1",
+                "messageType": "TITSTriggerListRequest"
+            })
+            trig_message = {
+                "apiName": "TITSPublicApi",
+                "apiVersion": "1.0",
+                "requestID": "someID",
+                "messageType": "TITSTriggerActivateRequest",
+                "data": {
+                    "triggerID": ""
+                }
+            }
+            trig.send(payload=req_message, opcode=1)
+            trig_data = json.loads(trig.recv())['data']['triggers']
+            for i in trig_data:
+                if i['name'] == 'coin':
+                    coin_message = trig_message.copy()
+                    coin_message["data"]["triggerID"] = i['ID']
+                    coin_message = str(coin_message)
+                    DTT_data.write(coin_message)
+                    DTT_data.write("\n")
+                    print("coin 등록 완료")
+                elif i['name'] == 'dollar':
+                    dollar_message = trig_message.copy()
+                    dollar_message["data"]["triggerID"] = i['ID']
+                    dollar_message = str(dollar_message)
+                    DTT_data.write(dollar_message)
+                    DTT_data.write("\n")
+                    print("dollar 등록 완료")
+                elif i['name'] == 'gold':
+                    gold_message = trig_message.copy()
+                    gold_message["data"]["triggerID"] = i['ID']
+                    gold_message = str(gold_message)
+                    DTT_data.write(gold_message)
+                    print("gold 등록 완료")
             print("\n등록이 완료되었습니다.\n" + "=" * 50 + "\nConnected to", channel + "\n" + "-" * 50)
 
     except IndexError:
@@ -50,16 +120,51 @@ if __name__ == "__main__":
             DTT_data.write("\n")
             channel = input("Twitch ID : ")
             DTT_data.write(channel)
+            DTT_data.write("\n")
+            req_message = str({
+                "apiName": "TITSPublicApi",
+                "apiVersion": "1.0",
+                "requestID": "1",
+                "messageType": "TITSTriggerListRequest"
+            })
+            trig_message = {
+                "apiName": "TITSPublicApi",
+                "apiVersion": "1.0",
+                "requestID": "someID",
+                "messageType": "TITSTriggerActivateRequest",
+                "data": {
+                    "triggerID": ""
+                }
+            }
+            trig.send(payload=req_message, opcode=1)
+            trig_data = json.loads(trig.recv())['data']['triggers']
+            for i in trig_data:
+                if i['name'] == 'coin':
+                    coin_message = trig_message.copy()
+                    coin_message["data"]["triggerID"] = i['ID']
+                    coin_message = str(coin_message)
+                    DTT_data.write(coin_message)
+                    DTT_data.write("\n")
+                    print("coin 등록 완료")
+                elif i['name'] == 'dollar':
+                    dollar_message = trig_message.copy()
+                    dollar_message["data"]["triggerID"] = i['ID']
+                    dollar_message = str(dollar_message)
+                    DTT_data.write(dollar_message)
+                    DTT_data.write("\n")
+                    print("dollar 등록 완료")
+                elif i['name'] == 'gold':
+                    gold_message = trig_message.copy()
+                    gold_message["data"]["triggerID"] = i['ID']
+                    gold_message = str(gold_message)
+                    DTT_data.write(gold_message)
+                    print("gold 등록 완료")
             print("\n등록이 완료되었습니다.\n" + "=" * 50 + "\nConnected to", channel + "\n" + "-" * 50)
 
     raw_data = req.post(alertbox)
 
     find_payload = re.compile("\"payload\":\"\w+")
     find_amount = re.compile("\"amount\":\d+")
-
-    username = 'TereBin_Bot'
-    oauth = "oauth:******************************"
-    chat_connection = twitch_chat_irc.TwitchChatIRC(username, oauth)
 
     while True:
         payload = None
@@ -69,6 +174,7 @@ if __name__ == "__main__":
                 print("Alertbox Response not 200. Automatically restarting after 5 seconds.")
                 time.sleep(5)
             else:
+                print('-'*50 + "\nDTT 1.1\n" + '-'*50)
                 print('-'*50 + "\nAlertbox Response 200\n" + '-'*50)
                 data = bs(raw_data.text, "html.parser")
                 data = data.select('head')
